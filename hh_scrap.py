@@ -36,28 +36,47 @@ def getTagsByAttr(tag,**attr):
     else:
         return tagsList
 
+def getJobInfo(jobDiv):
+    jobTitle = jobDiv.find("a",{"data-qa":"vacancy-serp__vacancy-title"})
+    jobUrl = str(jobTitle["href"])
+    jobTitle = jobTitle.get_text()
+    jobCompany = jobDiv.find("a",{"data-qa":"vacancy-serp__vacancy-employer"}).get_text().lstrip()
+    jobSalary = jobDiv.find("div",{"data-qa":"vacancy-serp__vacancy-compensation"})
+    if jobSalary == None:
+        jobSalary = 'N/A'
+    else:
+        jobSalary = jobSalary.get_text()
+    jobDate = jobDiv.find("span",{"class":"vacancy-serp-item__publication-date"})
+    if jobDate == None:
+        jobDate = 'N/A'
+    else:
+        jobDate = jobDate.get_text()
+    f.write(jobTitle + '\n' + jobUrl + '\n' + jobCompany + '\n' + jobSalary + '\n' +
+    jobDate + '\n\n')
+
 f = open ('jobs.log','w')
 baseurl = "https://%s.hh.ru/search/vacancy?specialization=1&area=3&order_by=publication_time&no_magic=true" % region
 
 logging.info("=== STARTING SCRAPER ===")
-# Get Pages 1 to 5
-for n in range(0,5):
+# Get Pages 1 to 2
+for n in range(0,2):
     if n == 0:
         url = baseurl + "&text=&currency_code=RUR&experience=doesNotMatter&search_period=&items_on_page=20"
     else:
         url = baseurl + "&enable_snippets=true&clusters=true&page=" + str(n)
+    # Вытащим страницу
     html = getHTTPObject(url)
+    # Подготовим страницу для парсинга
     bsObj = BeautifulSoup(html,"lxml")
-    fetchAttr = {"data-qa":"vacancy-serp__vacancy-title"}
-    jobList = getTagsByAttr("a",**fetchAttr)
-    fetchAttr = {"data-qa":"vacancy-serp__vacancy-employer"}
-    employerList = getTagsByAttr("a",**fetchAttr)
+    # Вытащим блоки с вакансиями и сохраним в список
+    fetchAttr = {"class":"vacancy-serp-item"}
+    jobList = getTagsByAttr("div",**fetchAttr)
 
     logging.info("Get vacancies on Page %s" % (str(n+1)))
     f.write("Page %s\n\n" % (str(n+1)))
-    for job in jobList:
-        f.write(job.get_text() + '\n')
-        f.write(str(job) + '\n\n')
+    # Получим краткую инфо о вакансии
+    for jobDiv in jobList:
+        getJobInfo(jobDiv)
 
 f.close()
 logging.info("=== SCRAPER STOPED ===")
