@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 config = configparser.ConfigParser()
 config.read('scrap.cfg')
 config_log = config['LOGGING']
-logging.info("=== STARTING SCRAPER ===")
+region = config['FILTER']['region']
 
 # Setup logging
 log_fmt = '%(asctime)s %(levelname)s %(message)s'
@@ -28,7 +28,7 @@ def getHTTPObject(url):
 
 def getTagsByAttr(tag,**attr):
     for key in attr:
-        logging.debug("Fetch tags <%s> with attr <%s>" % (key,attr[key]))
+        logging.debug("Fetch tags <%s> with attr %s=%s" % (tag,key,attr[key]))
         tagsList = bsObj.findAll(tag,{key:attr[key]})
     if tagsList == []:
         logging.error("Elements no found...")
@@ -36,11 +36,11 @@ def getTagsByAttr(tag,**attr):
     else:
         return tagsList
 
-
 f = open ('jobs.log','w')
-baseurl = "https://ekaterinburg.hh.ru/search/vacancy?specialization=1&area=3&order_by=publication_time&no_magic=true"
+baseurl = "https://%s.hh.ru/search/vacancy?specialization=1&area=3&order_by=publication_time&no_magic=true" % region
 
-# Get Pages 2 to 5
+logging.info("=== STARTING SCRAPER ===")
+# Get Pages 1 to 5
 for n in range(0,5):
     if n == 0:
         url = baseurl + "&text=&currency_code=RUR&experience=doesNotMatter&search_period=&items_on_page=20"
@@ -53,10 +53,11 @@ for n in range(0,5):
     fetchAttr = {"data-qa":"vacancy-serp__vacancy-employer"}
     employerList = getTagsByAttr("a",**fetchAttr)
 
-    logging.info("Get Page %s" % (str(n+1)))
-    f.write("Get Page %s\n\n" % (str(n+1)))
+    logging.info("Get vacancies on Page %s" % (str(n+1)))
+    f.write("Page %s\n\n" % (str(n+1)))
     for job in jobList:
         f.write(job.get_text() + '\n')
         f.write(str(job) + '\n\n')
 
 f.close()
+logging.info("=== SCRAPER STOPED ===")
