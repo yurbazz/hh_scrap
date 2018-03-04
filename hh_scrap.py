@@ -1,6 +1,7 @@
 import logging
 import configparser
 import urllib.error
+import re
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
@@ -9,6 +10,7 @@ config = configparser.ConfigParser()
 config.read('scrap.cfg')
 config_log = config['LOGGING']
 region = config['FILTER']['region']
+region_area = config['FILTER']['region_area']
 
 # Setup logging
 log_fmt = '%(asctime)s %(levelname)s %(message)s'
@@ -39,6 +41,8 @@ def getTagsByAttr(tag,**attr):
 def getJobInfo(jobDiv):
     jobTitle = jobDiv.find("a",{"data-qa":"vacancy-serp__vacancy-title"})
     jobUrl = str(jobTitle["href"])
+    if re.match('https://hhcdn',jobUrl):
+        return None
     jobTitle = jobTitle.get_text()
     jobCompany = jobDiv.find("a",{"data-qa":"vacancy-serp__vacancy-employer"}).get_text().lstrip()
     jobSalary = jobDiv.find("div",{"data-qa":"vacancy-serp__vacancy-compensation"})
@@ -46,16 +50,20 @@ def getJobInfo(jobDiv):
         jobSalary = 'N/A'
     else:
         jobSalary = jobSalary.get_text()
+    jobResponsibility = jobDiv.find("div",{"data-qa":"vacancy-serp__vacancy_snippet_responsibility"}).get_text()
+    jobRequirement = jobDiv.find("div",{"data-qa":"vacancy-serp__vacancy_snippet_requirement"}).get_text()
+    jobIdFilter = re.search('\/(?P<id>\d+)\?*',jobUrl)
+    jobId = jobIdFilter.group('id')
     jobDate = jobDiv.find("span",{"class":"vacancy-serp-item__publication-date"})
     if jobDate == None:
         jobDate = 'N/A'
     else:
         jobDate = jobDate.get_text()
-    f.write(jobTitle + '\n' + jobUrl + '\n' + jobCompany + '\n' + jobSalary + '\n' +
-    jobDate + '\n\n')
+    f.write(jobTitle + '\n' + jobId + '\n' + jobUrl + '\n' + jobCompany + '\n' + jobResponsibility +
+    '\n' + jobRequirement + '\n' + jobSalary + '\n' + jobDate + '\n\n')
 
 f = open ('jobs.log','w')
-baseurl = "https://%s.hh.ru/search/vacancy?specialization=1&area=3&order_by=publication_time&no_magic=true" % region
+baseurl = "https://%s.hh.ru/search/vacancy?specialization=1&area=%s&order_by=publication_time&no_magic=true" % (region,region_area)
 
 logging.info("=== STARTING SCRAPER ===")
 # Get Pages 1 to 2
