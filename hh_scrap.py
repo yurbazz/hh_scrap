@@ -1,7 +1,8 @@
 import logging
 import configparser
-import urllib.error
 import re
+import datetime
+import urllib.error
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
@@ -15,6 +16,7 @@ region_area = config['FILTER']['region_area']
 # Setup logging
 log_fmt = '%(asctime)s %(levelname)s %(message)s'
 logging.basicConfig(level=config_log['loglvl'],filename=config_log['logfile'],format=log_fmt)
+
 
 def getHTTPObject(url):
     logging.debug("Get url: \n%s", url)
@@ -54,13 +56,33 @@ def getJobInfo(jobDiv):
     jobRequirement = jobDiv.find("div",{"data-qa":"vacancy-serp__vacancy_snippet_requirement"}).get_text()
     jobIdFilter = re.search('\/(?P<id>\d+)\?*',jobUrl)
     jobId = jobIdFilter.group('id')
-    jobDate = jobDiv.find("span",{"class":"vacancy-serp-item__publication-date"})
-    if jobDate == None:
+    jobDateTag = jobDiv.find("span",{"class":"vacancy-serp-item__publication-date"})
+    if jobDateTag == None:
         jobDate = 'N/A'
     else:
-        jobDate = jobDate.get_text()
+        jobDate = getJobDate(jobDateTag.get_text())
+    # Send all info to output
     f.write(jobTitle + '\n' + jobId + '\n' + jobUrl + '\n' + jobCompany + '\n' + jobResponsibility +
     '\n' + jobRequirement + '\n' + jobSalary + '\n' + jobDate + '\n\n')
+
+def getJobDate(jobDate):
+    # Get date in dateformat
+    today = datetime.date.today()
+    todayMonth = today.month
+    todayYear = today.year
+    monthDict = {'января':'01','февраля':'02','марта':'03','апреля':'04','мая':'05','июня':'06',
+    'июля':'07','августа':'08','сентября':'09','октября':'10','ноября':'11','декабря':'12'}
+    for month in monthDict.keys():
+        if month in jobDate:
+            jobDate = jobDate.replace(month,monthDict[month])
+            jobMonth = datetime.datetime.strptime(jobDate,'%d %m').month
+    # Check if job was published in past year
+    if (todayMonth - jobMonth) < 0:
+        jobYear = todayYear - 1
+    else:
+        jobYear = todayYear
+    jobDate = datetime.datetime.strptime(jobDate + ' ' + str(jobYear),'%d %m %Y')
+    return str(jobDate)
 
 f = open ('jobs.log','w')
 baseurl = "https://%s.hh.ru/search/vacancy?specialization=1&area=%s&order_by=publication_time&no_magic=true" % (region,region_area)
