@@ -45,6 +45,11 @@ def getJobInfo(jobDiv):
     jobUrl = str(jobTitle["href"])
     if re.match('https://hhcdn',jobUrl):
         return None
+    # Determine if vacancy is in premium placement
+    if 'vacancy-serp-item_premium' in jobDiv["class"]:
+        jobPremium = 'True'
+    else:
+        jobPremium = 'False'
     jobTitle = jobTitle.get_text()
     jobCompany = jobDiv.find("a",{"data-qa":"vacancy-serp__vacancy-employer"}).get_text().lstrip()
     jobSalary = jobDiv.find("div",{"data-qa":"vacancy-serp__vacancy-compensation"})
@@ -52,7 +57,11 @@ def getJobInfo(jobDiv):
         jobSalary = 'N/A'
     else:
         jobSalary = jobSalary.get_text()
-    jobResponsibility = jobDiv.find("div",{"data-qa":"vacancy-serp__vacancy_snippet_responsibility"}).get_text()
+    jobResponsibility = jobDiv.find("div",{"data-qa":"vacancy-serp__vacancy_snippet_responsibility"})
+    if jobResponsibility == None:
+        jobResponsibility = 'N/A'
+    else:
+        jobResponsibility = jobResponsibility.get_text()
     jobRequirement = jobDiv.find("div",{"data-qa":"vacancy-serp__vacancy_snippet_requirement"}).get_text()
     jobIdFilter = re.search('\/(?P<id>\d+)\?*',jobUrl)
     jobId = jobIdFilter.group('id')
@@ -63,7 +72,7 @@ def getJobInfo(jobDiv):
         jobDate = getJobDate(jobDateTag.get_text())
     # Send all info to output
     f.write(jobTitle + '\n' + jobId + '\n' + jobUrl + '\n' + jobCompany + '\n' + jobResponsibility +
-    '\n' + jobRequirement + '\n' + jobSalary + '\n' + jobDate + '\n\n')
+    '\n' + jobRequirement + '\n' + jobSalary + '\n' + jobDate + '\n' + jobPremium + '\n\n')
 
 def getJobDate(jobDate):
     # Get date in dateformat
