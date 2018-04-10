@@ -41,38 +41,42 @@ def getTagsByAttr(tag,**attr):
         return tagsList
 
 def getJobInfo(jobDiv):
-    jobTitle = jobDiv.find("a",{"data-qa":"vacancy-serp__vacancy-title"})
-    jobUrl = str(jobTitle["href"])
-    if re.match('https://hhcdn',jobUrl):
+    jobDict = {}
+    titleTag = jobDiv.find("a",{"data-qa":"vacancy-serp__vacancy-title"})
+    url = str(titleTag["href"])
+    # Skip hhcdn urls
+    if re.match('https://hhcdn',url):
         return None
+    jobDict["url"] = url
     # Determine if vacancy is in premium placement
     if 'vacancy-serp-item_premium' in jobDiv["class"]:
-        jobPremium = 'True'
+        jobDict["premium"] = 1
     else:
-        jobPremium = 'False'
-    jobTitle = jobTitle.get_text()
-    jobCompany = jobDiv.find("a",{"data-qa":"vacancy-serp__vacancy-employer"}).get_text().lstrip()
-    jobSalary = jobDiv.find("div",{"data-qa":"vacancy-serp__vacancy-compensation"})
-    if jobSalary == None:
-        jobSalary = 'N/A'
+        jobDict["premium"] = 0
+    jobDict["title"] = titleTag.get_text().strip()
+    jobDict["company"] = jobDiv.find("a",{"data-qa":"vacancy-serp__vacancy-employer"}).get_text().strip()
+    salaryTag = jobDiv.find("div",{"data-qa":"vacancy-serp__vacancy-compensation"})
+    if salaryTag == None:
+        jobDict["salary"] = 'N/A'
     else:
-        jobSalary = jobSalary.get_text()
-    jobResponsibility = jobDiv.find("div",{"data-qa":"vacancy-serp__vacancy_snippet_responsibility"})
-    if jobResponsibility == None:
-        jobResponsibility = 'N/A'
+        jobDict["salary"] = salaryTag.get_text().strip()
+    responsibilityTag = jobDiv.find("div",{"data-qa":"vacancy-serp__vacancy_snippet_responsibility"})
+    if responsibilityTag == None:
+        jobDict["responsibility"] = 'N/A'
     else:
-        jobResponsibility = jobResponsibility.get_text()
-    jobRequirement = jobDiv.find("div",{"data-qa":"vacancy-serp__vacancy_snippet_requirement"}).get_text()
-    jobIdFilter = re.search('\/(?P<id>\d+)\?*',jobUrl)
-    jobId = jobIdFilter.group('id')
-    jobDateTag = jobDiv.find("span",{"class":"vacancy-serp-item__publication-date"})
-    if jobDateTag == None:
-        jobDate = 'N/A'
+        jobDict["responsibility"] = responsibilityTag.get_text().strip()
+    jobRequirement = jobDiv.find("div",{"data-qa":"vacancy-serp__vacancy_snippet_requirement"}).get_text().strip()
+    jobIdFilter = re.search('\/(?P<id>\d+)\?*',url)
+    jobDict["id"] = jobIdFilter.group('id')
+    dateTag = jobDiv.find("span",{"class":"vacancy-serp-item__publication-date"})
+    if dateTag == None:
+        jobDict["date"] = 'N/A'
     else:
-        jobDate = getJobDate(jobDateTag.get_text())
+        jobDict["date"] = getJobDate(dateTag.get_text())
     # Send all info to output
-    f.write(jobTitle + '\n' + jobId + '\n' + jobUrl + '\n' + jobCompany + '\n' + jobResponsibility +
-    '\n' + jobRequirement + '\n' + jobSalary + '\n' + jobDate + '\n' + jobPremium + '\n\n')
+    for key,value in jobDict.items():
+        print("%s: %s" % (key,value), file=f, flush=True)
+    print("", file=f, flush=True)
 
 def getJobDate(jobDate):
     # Get date in dateformat
