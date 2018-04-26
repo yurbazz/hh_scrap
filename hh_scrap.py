@@ -6,120 +6,138 @@ import urllib.error
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
-# Reading config file
-config = configparser.ConfigParser()
-config.read('scrap.cfg')
-config_log = config['LOGGING']
-region = config['FILTER']['region']
-region_area = config['FILTER']['region_area']
 
-# Setup logging
-log_fmt = '%(asctime)s %(levelname)s %(message)s'
-logging.basicConfig(level=config_log['loglvl'],filename=config_log['logfile'],format=log_fmt)
-
-
-def getHTTPObject(url):
+def get_http_object(url):
     logging.debug("Get url: \n%s", url)
     try:
-        html = urlopen(url) # return byte object
+        html = urlopen(url)  # return byte object
     except (urllib.error.HTTPError, urllib.error.URLError) as e:
         logging.error(e)
-        print("%s \nParser halted, url error..." % (e))
+        print("%s \nParser halted, url error..." % e)
         exit()
     else:
-        logging.debug("Http recieved")
+        logging.debug("Http received")
         return html
 
-def getTagsByAttr(tag,**attr):
-    for key in attr:
-        logging.debug("Fetch tags <%s> with attr %s=%s" % (tag,key,attr[key]))
-        tagsList = bsObj.findAll(tag,{key:attr[key]})
-    if tagsList == []:
+
+def get_tags_by_attr(bs_obj, tag, fetch_attr):
+    logging.debug("Fetch tags <%s> with attr %s" % (tag, fetch_attr))
+    tags_list = bs_obj.findAll(tag, fetch_attr)
+    if not tags_list:
         logging.error("Elements no found...")
         exit()
     else:
-        return tagsList
+        return tags_list
 
-def getJobInfo(jobDiv):
-    jobDict = {}
-    titleTag = jobDiv.find("a",{"data-qa":"vacancy-serp__vacancy-title"})
-    url = str(titleTag["href"])
+
+def get_job_info(job_div):
+    job_dict = {}
+    title_tag = job_div.find("a", {"data-qa": "vacancy-serp__vacancy-title"})
+    url = str(title_tag["href"])
     # Skip hhcdn urls
-    if re.match('https://hhcdn',url):
+    if re.match('https://hhcdn', url):
         return None
-    jobDict["url"] = url
+    job_dict["url"] = url
     # Determine if vacancy is in premium placement
-    if 'vacancy-serp-item_premium' in jobDiv["class"]:
-        jobDict["premium"] = 1
+    if 'vacancy-serp-item_premium' in job_div["class"]:
+        job_dict["premium"] = 1
     else:
-        jobDict["premium"] = 0
-    jobDict["title"] = titleTag.get_text().strip()
-    jobDict["company"] = jobDiv.find("a",{"data-qa":"vacancy-serp__vacancy-employer"}).get_text().strip()
-    salaryTag = jobDiv.find("div",{"data-qa":"vacancy-serp__vacancy-compensation"})
-    if salaryTag == None:
-        jobDict["salary"] = 'N/A'
+        job_dict["premium"] = 0
+    job_dict["title"] = title_tag.get_text().strip()
+    job_dict["company"] = job_div.find("a", {"data-qa": "vacancy-serp__vacancy-employer"}).get_text().strip()
+    salary_tag = job_div.find("div", {"data-qa": "vacancy-serp__vacancy-compensation"})
+    if salary_tag is None:
+        job_dict["salary"] = 'N/A'
     else:
-        jobDict["salary"] = salaryTag.get_text().strip()
-    responsibilityTag = jobDiv.find("div",{"data-qa":"vacancy-serp__vacancy_snippet_responsibility"})
-    if responsibilityTag == None:
-        jobDict["responsibility"] = 'N/A'
+        job_dict["salary"] = salary_tag.get_text().strip()
+    responsibility_tag = job_div.find("div", {"data-qa": "vacancy-serp__vacancy_snippet_responsibility"})
+    if responsibility_tag is None:
+        job_dict["responsibility"] = 'N/A'
     else:
-        jobDict["responsibility"] = responsibilityTag.get_text().strip()
-    jobRequirement = jobDiv.find("div",{"data-qa":"vacancy-serp__vacancy_snippet_requirement"}).get_text().strip()
-    jobIdFilter = re.search('\/(?P<id>\d+)\?*',url)
-    jobDict["id"] = jobIdFilter.group('id')
-    dateTag = jobDiv.find("span",{"class":"vacancy-serp-item__publication-date"})
-    if dateTag == None:
-        jobDict["date"] = 'N/A'
+        job_dict["responsibility"] = responsibility_tag.get_text().strip()
+    job_dict["requirement"] = job_div.find("div", {"data-qa": "vacancy-serp__vacancy_snippet_requirement"}
+                                           ).get_text().strip()
+    job_id_filter = re.search('/(?P<id>\d+)\?*', url)
+    job_dict["id"] = job_id_filter.group('id')
+    date_tag = job_div.find("span", {"class": "vacancy-serp-item__publication-date"})
+    if date_tag is None:
+        job_dict["date"] = 'N/A'
     else:
-        jobDict["date"] = getJobDate(dateTag.get_text())
+        job_dict["date"] = get_job_date(date_tag.get_text())
+    return job_dict
+
+
+def write_to_file(f, job_info):
     # Send all info to output
-    for key,value in jobDict.items():
-        print("%s: %s" % (key,value), file=f, flush=True)
+    for key, value in job_info.items():
+        print("%s: %s" % (key, value), file=f, flush=True)
     print("", file=f, flush=True)
 
-def getJobDate(jobDate):
+
+def get_job_date(job_date):
     # Get date in dateformat
     today = datetime.date.today()
-    todayMonth = today.month
-    todayYear = today.year
-    monthDict = {'января':'01','февраля':'02','марта':'03','апреля':'04','мая':'05','июня':'06',
-    'июля':'07','августа':'08','сентября':'09','октября':'10','ноября':'11','декабря':'12'}
-    for month in monthDict.keys():
-        if month in jobDate:
-            jobDate = jobDate.replace(month,monthDict[month])
-            jobMonth = datetime.datetime.strptime(jobDate,'%d %m').month
-    # Check if job was published in past year
-    if (todayMonth - jobMonth) < 0:
-        jobYear = todayYear - 1
-    else:
-        jobYear = todayYear
-    jobDate = datetime.datetime.strptime(jobDate + ' ' + str(jobYear),'%d %m %Y')
-    return str(jobDate)
+    today_month = today.month
+    today_year = today.year
+    job_year = None
+    month_dict = {'января': '01', 'февраля': '02', 'марта': '03', 'апреля': '04', 'мая': '05', 'июня': '06',
+                  'июля': '07', 'августа': '08', 'сентября': '09', 'октября': '10', 'ноября': '11',
+                  'декабря': '12'}
+    for month in month_dict.keys():
+        if month in job_date:
+            job_date = job_date.replace(month, month_dict[month])
+            job_month = datetime.datetime.strptime(job_date, '%d %m').month
+            # Check if job was published in past year
+            if (today_month - job_month) < 0:
+                job_year = today_year - 1
+            else:
+                job_year = today_year
+    job_date = datetime.datetime.strptime(job_date + ' ' + str(job_year), '%d %m %Y')
+    return str(job_date)
 
-f = open ('jobs.log','w')
-baseurl = "https://%s.hh.ru/search/vacancy?specialization=1&area=%s&order_by=publication_time&no_magic=true" % (region,region_area)
 
-logging.info("=== STARTING SCRAPER ===")
-# Get Pages 1 to 2
-for n in range(0,2):
-    if n == 0:
-        url = baseurl + "&text=&currency_code=RUR&experience=doesNotMatter&search_period=&items_on_page=20"
-    else:
-        url = baseurl + "&enable_snippets=true&clusters=true&page=" + str(n)
-    # Вытащим страницу
-    html = getHTTPObject(url)
-    # Подготовим страницу для парсинга
-    bsObj = BeautifulSoup(html,"lxml")
-    # Вытащим блоки с вакансиями и сохраним в список
-    fetchAttr = {"class":"vacancy-serp-item"}
-    jobList = getTagsByAttr("div",**fetchAttr)
+def main():
+    # Reading config file
+    config = configparser.ConfigParser()
+    config.read('scrap.cfg')
+    config_log = config['LOGGING']
+    region = config['FILTER']['region']
+    region_area = config['FILTER']['region_area']
 
-    logging.info("Get vacancies on Page %s" % (str(n+1)))
-    f.write("Page %s\n\n" % (str(n+1)))
-    # Получим краткую инфо о вакансии
-    for jobDiv in jobList:
-        getJobInfo(jobDiv)
+    # Setup logging
+    log_fmt = '%(asctime)s %(levelname)s %(message)s'
+    logging.basicConfig(level=config_log['loglvl'], filename=config_log['logfile'], format=log_fmt)
 
-f.close()
-logging.info("=== SCRAPER STOPED ===")
+    f = open('jobs.log', 'w')
+    baseurl = "https://%s.hh.ru/search/vacancy?specialization=1&area=%s&order_by=publication_time&no_magic=true" % \
+              (region, region_area)
+
+    logging.info("=== STARTING SCRAPER ===")
+    # Get Pages 1 to 2
+    for n in range(0, 2):
+        if n == 0:
+            url = baseurl + "&text=&currency_code=RUR&experience=doesNotMatter&search_period=&items_on_page=20"
+        else:
+            url = baseurl + "&enable_snippets=true&clusters=true&page=" + str(n)
+        # Вытащим страницу
+        html = get_http_object(url)
+        # Подготовим страницу для парсинга
+        bs_obj = BeautifulSoup(html, "lxml")
+        # Вытащим блоки с вакансиями и сохраним в список
+        tag = "div"
+        fetch_attr = {"class": "vacancy-serp-item"}
+        job_list = get_tags_by_attr(bs_obj, tag, fetch_attr)
+
+        logging.info("Get vacancies on Page %s" % (str(n+1)))
+        f.write("Page %s\n\n" % (str(n+1)))
+        # Получим краткую инфо о вакансии
+        for job_div in job_list:
+            job_info = get_job_info(job_div)
+            write_to_file(f, job_info)
+
+    f.close()
+    logging.info("=== SCRAPER STOPED ===")
+
+
+if __name__ == '__main__':
+    main()
