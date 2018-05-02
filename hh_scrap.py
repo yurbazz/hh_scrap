@@ -40,19 +40,19 @@ def get_job_info(job_div):
     job_dict["url"] = url
     # Determine if vacancy is in premium placement
     if 'vacancy-serp-item_premium' in job_div["class"]:
-        job_dict["premium"] = 1
+        job_dict["promo"] = 1
     else:
-        job_dict["premium"] = 0
+        job_dict["promo"] = 0
     job_dict["title"] = title_tag.get_text().strip()
     job_dict["company"] = job_div.find("a", {"data-qa": "vacancy-serp__vacancy-employer"}).get_text().strip()
     salary_tag = job_div.find("div", {"data-qa": "vacancy-serp__vacancy-compensation"})
     if salary_tag is None:
-        job_dict["salary"] = 'N/A'
+        job_dict["salary"] = None
     else:
         job_dict["salary"] = salary_tag.get_text().strip()
     responsibility_tag = job_div.find("div", {"data-qa": "vacancy-serp__vacancy_snippet_responsibility"})
     if responsibility_tag is None:
-        job_dict["responsibility"] = 'N/A'
+        job_dict["responsibility"] = None
     else:
         job_dict["responsibility"] = responsibility_tag.get_text().strip()
     job_dict["requirement"] = job_div.find("div", {"data-qa": "vacancy-serp__vacancy_snippet_requirement"}
@@ -61,7 +61,7 @@ def get_job_info(job_div):
     job_dict["id"] = job_id_filter.group('id')
     date_tag = job_div.find("span", {"class": "vacancy-serp-item__publication-date"})
     if date_tag is None:
-        job_dict["date"] = 'N/A'
+        job_dict["date"] = None
     else:
         job_dict["date"] = get_job_date(date_tag.get_text())
     return job_dict
