@@ -3,6 +3,7 @@ import configparser
 import re
 import datetime
 import urllib.error
+import dbconn
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
@@ -67,13 +68,6 @@ def get_job_info(job_div):
     return job_dict
 
 
-def write_to_file(f, job_info):
-    # Send all info to output
-    for key, value in job_info.items():
-        print("%s: %s" % (key, value), file=f, flush=True)
-    print("", file=f, flush=True)
-
-
 def get_job_date(job_date):
     # Get date in dateformat
     today = datetime.date.today()
@@ -96,25 +90,22 @@ def get_job_date(job_date):
     return str(job_date)
 
 
+def write_to_file(job_info):
+    # Send new jobs to file
+    with open('jobs.log', 'a') as f:
+        for key, value in job_info.items():
+            print("%s: %s" % (key, value), file=f, flush=True)
+        print("", file=f, flush=True)
+
+
 def main():
-    # Reading config file
-    config = configparser.ConfigParser()
-    config.read('scrap.cfg')
-    config_log = config['LOGGING']
-    region = config['FILTER']['region']
-    region_area = config['FILTER']['region_area']
 
-    # Setup logging
-    log_fmt = '%(asctime)s %(levelname)s %(message)s'
-    logging.basicConfig(level=config_log['loglvl'], filename=config_log['logfile'], format=log_fmt)
-
-    f = open('jobs.log', 'w')
     baseurl = "https://%s.hh.ru/search/vacancy?specialization=1&area=%s&order_by=publication_time&no_magic=true" % \
               (region, region_area)
 
     logging.info("=== STARTING SCRAPER ===")
-    # Get Pages 1 to 2
-    for n in range(0, 2):
+    # Get Pages 1 to 10
+    for n in range(0, 10):
         if n == 0:
             url = baseurl + "&text=&currency_code=RUR&experience=doesNotMatter&search_period=&items_on_page=20"
         else:
@@ -129,15 +120,23 @@ def main():
         job_list = get_tags_by_attr(bs_obj, tag, fetch_attr)
 
         logging.info("Get vacancies on Page %s" % (str(n+1)))
-        f.write("Page %s\n\n" % (str(n+1)))
         # Получим краткую инфо о вакансии
         for job_div in job_list:
             job_info = get_job_info(job_div)
-            write_to_file(f, job_info)
-
-    f.close()
-    logging.info("=== SCRAPER STOPED ===")
+            if dbconn.job_handler(job_info) == 1:
+                write_to_file(job_info)
 
 
 if __name__ == '__main__':
+    # Reading config file
+    config = configparser.ConfigParser()
+    config.read('scrap.cfg')
+    config_log = config['LOGGING']
+    region = config['FILTER']['region']
+    region_area = config['FILTER']['region_area']
+
+    # Setup logging
+    log_fmt = '%(asctime)s %(levelname)s %(message)s'
+    logging.basicConfig(level=config_log['loglvl'], filename=config_log['logfile'], format=log_fmt)
+
     main()
