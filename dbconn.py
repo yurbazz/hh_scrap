@@ -54,16 +54,6 @@ def job_handler(job_dict):
     conn = set_conn()
     try:
         with conn.cursor() as cur:
-            sql = "SELECT type FROM `titles` WHERE `title` = %s"
-            # If found 0 rows doing new insert
-            if cur.execute(sql, job_dict['title']) == 0:
-                new_insert(conn, job_dict)
-                return 1
-            # Skip if vacancy is not interesting
-            if cur.fetchone()[0] == 2:
-                logging.debug("Title: [%s] not interesting, exlude" % job_dict['title'])
-                return
-        with conn.cursor() as cur:
             # Check if we get all new vacancies and can stop...
             sql = "SELECT 1 FROM `jobs_info` WHERE `job_id` = %s AND `u_date` = %s"
             if cur.execute(sql, (job_dict['id'], job_dict['date'])) == 1:
@@ -72,12 +62,22 @@ def job_handler(job_dict):
                 # ...But not if old vacancy is in promo list
                 sql = "SELECT promo FROM `jobs_info` WHERE `job_id` = %s"
                 cur.execute(sql, job_dict['id'])
-                if cur.fetchone() == 1:
+                if cur.fetchone()[0] == 1:
                     logging.debug("...But it's a promo, so continue")
                     return
                 else:
                     logging.info("=== SCRAPER STOPED ===")
                     exit()
+            else:
+                sql = "SELECT type FROM `titles` WHERE `title` = %s"
+                # If found 0 rows doing new insert
+                if cur.execute(sql, job_dict['title']) == 0:
+                    new_insert(conn, job_dict)
+                    return 1
+                # Skip if vacancy is not interesting
+                if cur.fetchone()[0] == 2:
+                    logging.debug("Title: [%s] not interesting, exlude" % job_dict['title'])
+                    return
         with conn.cursor() as cur:
             # Check if vacancy is exist and confirmed on new date
             sql = "SELECT 1 FROM `jobs_info` WHERE `job_id` = %s AND " \
