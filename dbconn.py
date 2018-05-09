@@ -45,7 +45,7 @@ def new_insert(conn, job_dict):
                   "        %(responsibility)s, %(requirement)s, %(promo)s, 0)"
             cur.execute(sql, job_dict)
             conn.commit()
-            logging.debug("Job with id [%s] inserted to db" % job_dict['id'])
+            logging.debug("Job with id [%s], title[%s] inserted to db" % (job_dict['id'],job_dict['title']))
     except pymysql.err.Error as e:
         logging.error(e)
 
