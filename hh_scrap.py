@@ -45,7 +45,12 @@ def get_job_info(job_div):
     else:
         job_dict["promo"] = 0
     job_dict["title"] = title_tag.get_text().strip()
-    job_dict["company"] = job_div.find("a", {"data-qa": "vacancy-serp__vacancy-employer"}).get_text().strip()
+    company_tag = job_div.find("a", {"data-qa": "vacancy-serp__vacancy-employer"})
+    if company_tag is None:
+        logging.error("Job doesn't have employer, url: %s" % url)
+        return None
+    else:
+        job_dict["company"] = company_tag.get_text().strip()
     salary_tag = job_div.find("div", {"data-qa": "vacancy-serp__vacancy-compensation"})
     if salary_tag is None:
         job_dict["salary"] = None
