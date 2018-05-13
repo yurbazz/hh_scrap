@@ -1,24 +1,24 @@
 <?php
+include('db.php');
 
-$connection = mysqli_connect('127.0.0.1', 'jobsdb', 'password', 'JobsDB');
-mysqli_set_charset($connection, "utf8");
-
-if ($connection == false) {
-	echo'<br> не удалось подключиться к базе данных!<br>';
-	echo mysqli_connect_error();
-	exit();
-}
+echo "<a href=\"..\index.php\">На главную страницу</a>";
 
 $job_status = $_GET['job-status'];
 
 if ($job_status == 'job-new') {
 	$sql_filter = "AND j.`status` IS NULL\n";
+	$set_tracked = "
+	<input type=\"radio\" name=\"".$row["job_id"]."\" value=\"1\" id=\"tracked".$row["job_id"]."\" checked>".
+	"<label for=\"tracked".$row["job_id"]."\">Отслеживать</span><br />".
+	"<input type=\"radio\" name=\"".$row["job_id"]."\" value=\"2\" id=\"not-tracked".$row["job_id"]."\">".
+	"<label for=\"not-tracked".$row["job_id"]."\">Не отслеживать</span><br />\n";
 }
 elseif ($job_status == 'job-good') {
 	$sql_filter = "AND j.`status` = 1\n";
+	$set_tracked = "";
 }
 
-  $sql = "SELECT t.title, c.company, j.p_date AS p_date, j.u_date AS u_date,
+  $sql = "SELECT j.job_id, t.title, c.company, j.p_date AS p_date, j.u_date AS u_date,
 	j.salary, j.url, j.responsibility, j.requirement, j.updates
   FROM `jobs_info` j
   JOIN `titles` t
@@ -28,8 +28,8 @@ elseif ($job_status == 'job-good') {
   WHERE t.`type` = 1\n" . $sql_filter . "order by j.`id`";
 
 	if ($result = mysqli_query($connection, $sql)) {
+		echo "<form method=\"GET\" action=\"#\">";
     while ($row = mysqli_fetch_assoc($result)) {
-			// print_r($row);
 			echo "<h3>".$row["title"]."</h3>".
 			"<ul>".
 			"<li>company: ".$row["company"]."</li>".
@@ -40,9 +40,10 @@ elseif ($job_status == 'job-good') {
 			"<li>responsibility: ".$row["responsibility"]."</li>".
 			"<li>requirement: ".$row["requirement"]."</li>".
 			"<li>updates: ".$row["updates"]."</li>".
-			"</ul>";
-      // printf ("%s (%s)\n", $row["title"], $row["company"]);
+			"</ul>\n".$set_tracked;
     }
+		echo "<button type=\"submit\">Обработать</button>".
+		"</form>";
     mysqli_free_result($result);
 	}
 

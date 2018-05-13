@@ -5,7 +5,7 @@
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
-    <form method="GET" action="handler.php">
+    <form method="GET" action="include/handler.php">
       <h2>Статус вакансий:</h2>
       <input type="radio" name="job-status" id="job-new" value="job-new" checked />
       <label for="job-new">новые</label>
