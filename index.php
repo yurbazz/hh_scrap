@@ -13,8 +13,5 @@
       <label for="job-good">уже отмеченные</label>
       <button type="submit">Найти</button>
     </form>
-    <?php
-      include(handler.php);
-    ?>
   </body>
 </html>

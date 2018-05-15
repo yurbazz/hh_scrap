@@ -74,9 +74,12 @@ def job_handler(job_dict):
                 if cur.execute(sql, job_dict['title']) == 0:
                     new_insert(conn, job_dict)
                     return 1
-                # Skip if vacancy is not interesting
+                # Skip if vacancy is not interesting, but make dummy record with job_id
                 if cur.fetchone()[0] == 2:
                     logging.debug("Title: [%s] not interesting, exlude" % job_dict['title'])
+                    job_dict['responsibility'] = ""
+                    job_dict['requirement'] = ""
+                    new_insert(conn, job_dict)
                     return
         with conn.cursor() as cur:
             # Check if vacancy is exist and confirmed on new date
