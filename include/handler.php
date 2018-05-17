@@ -24,7 +24,7 @@ WHERE t.`type` = 1\n" . $sql_filter . "order by j.`id`";
 $result = mysqli_query($connection, $sql);
 
 if ($result->num_rows <> 0) {
-	echo "<form method=\"GET\" action=\"job_track_status.php\">";
+	echo "<form method=\"GET\" action=\"job_vacancy_set_status.php\">";
   while ($row = mysqli_fetch_assoc($result)) {
 		echo "<h3>".$row["title"]."</h3>".
 		"<ul>".
@@ -40,9 +40,9 @@ if ($result->num_rows <> 0) {
 		// Если найдены новые вакансии, необходимо выбрать их статус
 		if ($job_status == 'job-new') {
 			echo "<input type=\"radio\" name=\"".$row["job_id"]."\" value=\"1\" id=\"tracked".$row["job_id"]."\" checked>".
-			"<label for=\"tracked".$row["job_id"]."\">Отслеживать</span><br />".
+			"<label for=\"tracked".$row["job_id"]."\">Отслеживать</label><br />".
 			"<input type=\"radio\" name=\"".$row["job_id"]."\" value=\"2\" id=\"not-tracked".$row["job_id"]."\">".
-			"<label for=\"not-tracked".$row["job_id"]."\">Не отслеживать</span><br />\n";
+			"<label for=\"not-tracked".$row["job_id"]."\">Не отслеживать</label><br />\n";
 		}
   }
 	echo $form_footer.
