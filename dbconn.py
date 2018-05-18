@@ -59,10 +59,10 @@ def job_handler(job_dict):
             if cur.execute(sql, (job_dict['id'], job_dict['date'])) == 1:
                 logging.debug("It seems we found all new jobs. This job is already in db: id[%s], date[%s], "
                               "title[%s]..." % (job_dict['id'], job_dict['date'], job_dict['title']))
-                # ...But not if old vacancy is in promo list
+                # ...But not if vacancy is in promo list
                 sql = "SELECT promo FROM `jobs_info` WHERE `job_id` = %s"
                 cur.execute(sql, job_dict['id'])
-                if cur.fetchone()[0] == 1:
+                if (cur.fetchone()[0] == 1) or (job_dict['promo'] == 1):
                     logging.debug("...But it's a promo, so continue")
                     return
                 else:
@@ -86,7 +86,7 @@ def job_handler(job_dict):
             sql = "SELECT 1 FROM `jobs_info` WHERE `job_id` = %s AND " \
                   "`title_id` = (SELECT id FROM `titles` WHERE `title` = %s)"
             if cur.execute(sql, (job_dict['id'], job_dict['title'])) == 1:
-                logging.debug("The job with id[%s], title[%s], was updated on date[%s]" %
+                logging.info("The job with id[%s], title[%s], was updated on date[%s]" %
                               (job_dict['id'], job_dict['title'], job_dict['date']))
                 # Update date of confirmation
                 sql = "UPDATE `jobs_info` SET `u_date` = %s, `updates` = `updates` + 1 WHERE `job_id` = %s"
@@ -97,6 +97,7 @@ def job_handler(job_dict):
             else:
                 # vacancy not exist, doing insert
                 new_insert(conn, job_dict)
+                return 1
     except pymysql.err.Error as e:
         logging.error(e)
     finally:
