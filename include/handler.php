@@ -32,7 +32,7 @@ if ($result->num_rows <> 0) {
 		"<li>p_date: ".$row["p_date"]."</li>".
 		"<li>u_date: ".$row["u_date"]."</li>".
 		"<li>salary: ".$row["salary"]."</li>".
-		"<li><a href=\"".$row["url"]."\">".$row["url"]."</a></li>".
+		"<li><a href=\"".$row["url"]."\" target=\"_blank\">".$row["url"]."</a></li>".
 		"<li>responsibility: ".$row["responsibility"]."</li>".
 		"<li>requirement: ".$row["requirement"]."</li>".
 		"<li>updates: ".$row["updates"]."</li>".

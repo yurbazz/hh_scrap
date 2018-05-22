@@ -45,7 +45,7 @@ def new_insert(conn, job_dict):
                   "        %(responsibility)s, %(requirement)s, %(promo)s, 0)"
             cur.execute(sql, job_dict)
             conn.commit()
-            logging.debug("Job with id [%s], title[%s] inserted to db" % (job_dict['id'],job_dict['title']))
+            logging.debug("Job with id [%s], title[%s] inserted to db" % (job_dict['id'], job_dict['title']))
     except pymysql.err.Error as e:
         logging.error(e)
 
@@ -87,7 +87,7 @@ def job_handler(job_dict):
                   "`title_id` = (SELECT id FROM `titles` WHERE `title` = %s)"
             if cur.execute(sql, (job_dict['id'], job_dict['title'])) == 1:
                 logging.info("The job with id[%s], title[%s], was updated on date[%s]" %
-                              (job_dict['id'], job_dict['title'], job_dict['date']))
+                             (job_dict['id'], job_dict['title'], job_dict['date']))
                 # Update date of confirmation
                 sql = "UPDATE `jobs_info` SET `u_date` = %s, `updates` = `updates` + 1 WHERE `job_id` = %s"
                 cur.execute(sql, (job_dict['date'], job_dict['id']))
