@@ -128,6 +128,8 @@ def main():
         # Получим краткую инфо о вакансии
         for job_div in job_list:
             job_info = get_job_info(job_div)
+            if job_info is None:
+                continue
             if dbconn.job_handler(job_info) == 1:
                 write_to_file(job_info)
 

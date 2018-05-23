@@ -43,6 +43,6 @@ if __name__ == '__main__':
     try:
         logging.info("Get full job description")
         main(sys.argv[1])
-    except IndexError as e:
+    except IndexError:
         logging.error("Url parameter is empty")
         exit()
