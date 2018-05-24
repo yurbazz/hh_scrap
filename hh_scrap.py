@@ -3,6 +3,8 @@ import configparser
 import re
 import datetime
 import urllib.error
+import sys
+import getopt
 import dbconn
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
@@ -103,8 +105,18 @@ def write_to_file(job_info):
         print("", file=f, flush=True)
 
 
-def main():
+def get_job_desc(url):
+    html = get_http_object(url)
+    bs_obj = BeautifulSoup(html, "lxml")
+    div = bs_obj.find("div", {"class": "vacancy-description"})
+    div_filtered = div(["p", "ul"])
+    desc = ''
+    for element in div_filtered:
+        desc += str(element)
+    print(desc)
 
+
+def main():
     baseurl = "https://%s.hh.ru/search/vacancy?specialization=1&area=%s&order_by=publication_time&no_magic=true" % \
               (region, region_area)
 
@@ -146,4 +158,15 @@ if __name__ == '__main__':
     log_fmt = '%(asctime)s %(levelname)s %(message)s'
     logging.basicConfig(level=config_log['loglvl'], filename=config_log['logfile'], format=log_fmt)
 
-    main()
+    if len(sys.argv) == 1:
+        main()
+    else:
+        opts = []
+        try:
+            opts, args = getopt.getopt(sys.argv[1:], 'd:')
+        except getopt.GetoptError:
+            print("Usage: hh_scrap -d <url>")
+            exit()
+        for opt, arg in opts:
+            if opt == '-d':
+                get_job_desc(arg)
