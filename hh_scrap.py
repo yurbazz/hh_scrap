@@ -3,17 +3,19 @@ import configparser
 import re
 import datetime
 import urllib.error
+import urllib.request
 import sys
 import getopt
 import dbconn
-from urllib.request import urlopen
 from bs4 import BeautifulSoup
 
 
 def get_http_object(url):
     logging.debug("Get url: \n%s", url)
+    req = urllib.request.Request(url)
+    req.add_header('User-Agent','Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0')
     try:
-        html = urlopen(url)  # return byte object
+        html = urllib.request.urlopen(req)
     except (urllib.error.HTTPError, urllib.error.URLError) as e:
         logging.error(e)
         print("%s \nParser halted, url error..." % e)
