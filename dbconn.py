@@ -102,3 +102,19 @@ def job_handler(job_dict):
         logging.error(e)
     finally:
         conn.close()
+
+
+def insert_job_desc(desc, job_id):
+    conn = set_conn()
+    try:
+        with conn.cursor() as cur:
+            sql = "INSERT INTO `jobs_desc` (`job_id`, `description`) VALUES (%s, %s)"
+            cur.execute(sql, (job_id, desc))
+            sql = "UPDATE `jobs_info` SET `is_full` = 1 WHERE `job_id` = %s"
+            cur.execute(sql, job_id)
+            conn.commit()
+            logging.debug("Description for job inserted")
+    except pymysql.err.Error as e:
+        logging.error(e)
+    finally:
+        conn.close()

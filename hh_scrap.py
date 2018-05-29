@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 def get_http_object(url):
     logging.debug("Get url: \n%s", url)
     req = urllib.request.Request(url)
-    req.add_header('User-Agent','Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0')
+    req.add_header('User-Agent', 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0')
     try:
         html = urllib.request.urlopen(req)
     except (urllib.error.HTTPError, urllib.error.URLError) as e:
@@ -108,14 +108,21 @@ def write_to_file(job_info):
 
 
 def get_job_desc(url):
+    # Получаем описание вакансии
+    job_id_filter = re.search('/(?P<id>\d+)\?*', url)
+    job_id = job_id_filter.group('id')
     html = get_http_object(url)
     bs_obj = BeautifulSoup(html, "lxml")
     div = bs_obj.find("div", {"class": "vacancy-description"})
+    if not div:
+        logging.error("Job description not found...")
+        exit()
     div_filtered = div(["p", "ul"])
     desc = ''
     for element in div_filtered:
         desc += str(element)
-    print(desc)
+    # Вставляем в БД
+    dbconn.insert_job_desc(desc, job_id)
 
 
 def main():
