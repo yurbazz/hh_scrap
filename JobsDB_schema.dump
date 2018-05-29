@@ -26,7 +26,24 @@ CREATE TABLE `companys` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `company` varchar(70) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=169 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=403 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `jobs_desc`
+--
+
+DROP TABLE IF EXISTS `jobs_desc`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `jobs_desc` (
+  `id` int(10) NOT NULL AUTO_INCREMENT,
+  `job_id` int(10) NOT NULL,
+  `description` varchar(5000) COLLATE utf8_unicode_ci NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `IX_job_id` (`job_id`) USING BTREE,
+  CONSTRAINT `FK_jobs_desc.job_id__jobs_info.job_id` FOREIGN KEY (`job_id`) REFERENCES `jobs_info` (`job_id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -50,12 +67,14 @@ CREATE TABLE `jobs_info` (
   `promo` tinyint(1) DEFAULT NULL COMMENT 'is it advertisment on top of the page?',
   `updates` tinyint(4) NOT NULL COMMENT 'total number of vacancy confirmations',
   `status` tinyint(4) DEFAULT NULL COMMENT 'if row is new = NULL',
+  `is_full` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `IX_title_id` (`title_id`),
   KEY `IX_company_id` (`company_id`) USING BTREE,
+  KEY `IX_job_id` (`job_id`) USING BTREE,
   CONSTRAINT `FK_jobs_info.company_id__companys.id` FOREIGN KEY (`company_id`) REFERENCES `companys` (`id`),
   CONSTRAINT `FK_jobs_info.title_id__titles.id` FOREIGN KEY (`title_id`) REFERENCES `titles` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=346 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=1805 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -70,7 +89,7 @@ CREATE TABLE `titles` (
   `title` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
   `type` tinyint(4) DEFAULT NULL COMMENT 'good title = 1',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=331 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=737 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
@@ -82,4 +101,4 @@ CREATE TABLE `titles` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-05-11 20:55:48
+-- Dump completed on 2018-05-29 22:01:08
