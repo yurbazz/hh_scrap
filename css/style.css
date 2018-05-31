@@ -5,6 +5,11 @@
   padding: 5px 0;
 }
 
+.desc-block {
+  width: 900px;
+  margin: 0 auto;
+}
+
 .title {
   font-size: 1.2em;
   font-style: italic;
