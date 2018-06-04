@@ -54,7 +54,8 @@ if ($result->num_rows <> 0) {
 			echo "<input type=\"radio\" name=\"".$row["job_id"]."\" value=\"1\" id=\"tracked".$row["job_id"]."\" checked>".
 			"<label for=\"tracked".$row["job_id"]."\">Отслеживать</label><br />".
 			"<input type=\"radio\" name=\"".$row["job_id"]."\" value=\"2\" id=\"not-tracked".$row["job_id"]."\">".
-			"<label for=\"not-tracked".$row["job_id"]."\">Не отслеживать</label><br />\n";
+			"<label for=\"not-tracked".$row["job_id"]."\">Не отслеживать</label><br />\n".
+      "<input type=\"hidden\" name=\"joburl_".$row["job_id"]."\" value=\"".$row["url"]."\" />\n";
 		}
 		// Если отмеченная вакансия, показать ссылку на подробное описание
 		if ($job_status == 'job-good') {
