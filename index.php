@@ -5,8 +5,8 @@
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
-    <a href="include/job_titles.php">Показать новые должности</a><br />
-    <form method="GET" action="include/handler.php">
+    <a href="web/job_titles.php">Показать новые должности</a><br />
+    <form method="GET" action="web/handler.php">
       <h2>Показать вакансии:</h2>
       <input type="radio" name="job-status" id="job-new" value="job-new" checked />
       <label for="job-new">новые</label>

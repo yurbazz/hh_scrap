@@ -1,6 +1,6 @@
 <?php
 include('db.php');
-echo "<a href=\"..\index.php\">На главную страницу</a><br />";
+echo "<a href=\"../index.php\">На главную страницу</a><br />";
 
 $status = 0;
 

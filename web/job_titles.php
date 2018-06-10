@@ -7,7 +7,7 @@
 <body>
 <?php
 include('db.php');
-echo "<a href=\"..\index.php\">На главную страницу</a>";
+echo "<a href=\"../index.php\">На главную страницу</a>";
 
 $form_footer = "<button type=\"submit\">Обработать</button>";
 $sql = "SELECT t.id, t.title, ji.url FROM titles t \n".

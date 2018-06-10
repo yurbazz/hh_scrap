@@ -7,7 +7,7 @@
 <body>
 <?php
 include('db.php');
-echo "<a href=\"..\index.php\">На главную страницу</a>";
+echo "<a href=\"../index.php\">На главную страницу</a>";
 
 $job_status = $_GET['job-status'];
 

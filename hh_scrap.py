@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3.5
+# -*- coding: utf-8 -*-
 
 import logging
 import configparser
@@ -153,21 +154,29 @@ def main():
             job_info = get_job_info(job_div)
             if job_info is None:
                 continue
-            if dbconn.job_handler(job_info) == 1:
-                write_to_file(job_info)
+            dbconn.job_handler(job_info)
+            # if dbconn.job_handler(job_info) == 1:
+            #     write_to_file(job_info)
 
 
 if __name__ == '__main__':
     # Reading config file
     config = configparser.ConfigParser()
-    config.read('scrap.cfg')
+    if not config.read('scrap.cfg'):
+        # If reading from php folder
+        config.read('../scrap.cfg')
     config_log = config['LOGGING']
     region = config['FILTER']['region']
     region_area = config['FILTER']['region_area']
+    if not config.read('scrap.cfg'):
+        # If reading from php folder
+        log_filename='../' + config_log['logfile']
+    else:
+        log_filename=config_log['logfile']
 
     # Setup logging
     log_fmt = '%(asctime)s %(levelname)s %(message)s'
-    logging.basicConfig(level=config_log['loglvl'], filename=config_log['logfile'], format=log_fmt)
+    logging.basicConfig(level=config_log['loglvl'], filename=log_filename, format=log_fmt)
 
     if len(sys.argv) == 1:
         main()
