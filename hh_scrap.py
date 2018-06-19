@@ -162,17 +162,18 @@ def main():
 if __name__ == '__main__':
     # Reading config file
     config = configparser.ConfigParser()
+    log_date = datetime.date.today()
+    log_date = log_date.strftime('%Y-%m-%d')
     if not config.read('scrap.cfg'):
         # If reading from php folder
         config.read('../scrap.cfg')
     config_log = config['LOGGING']
     region = config['FILTER']['region']
     region_area = config['FILTER']['region_area']
+    log_filename = config_log['logfile'] + '_' + log_date + '.log'
     if not config.read('scrap.cfg'):
         # If reading from php folder
-        log_filename='../' + config_log['logfile']
-    else:
-        log_filename=config_log['logfile']
+        log_filename = '../' + log_filename
 
     # Setup logging
     log_fmt = '%(asctime)s %(levelname)s %(message)s'
