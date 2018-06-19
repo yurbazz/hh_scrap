@@ -1,3 +1,10 @@
+<html>
+  <header>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../css/style.css" />
+  </header>
+
+<body>
 <?php
 include('db.php');
 echo "<a href=\"../index.php\">На главную страницу</a><br />";
