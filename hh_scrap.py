@@ -11,14 +11,21 @@ import sys
 import getopt
 import dbconn
 from bs4 import BeautifulSoup
+from http.cookiejar import CookieJar
 
 
 def get_http_object(url):
     logging.debug("Get url: \n%s", url)
-    req = urllib.request.Request(url)
-    req.add_header('User-Agent', 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/60.0')
+    req = urllib.request.Request(url, None, {
+        'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-GB,en;q=0.5',
+        'Accept-Encoding': 'identity', 'Connection': 'keep-alive'})
+    cj = CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
     try:
-        html = urllib.request.urlopen(req)
+        response = opener.open(req)
+        html = response.read()
     except (urllib.error.HTTPError, urllib.error.URLError) as e:
         logging.error(e)
         print("%s \nParser halted, url error..." % e)
