@@ -65,7 +65,7 @@ def get_job_info(job_div):
         return None
     else:
         job_dict["company"] = company_tag.get_text().strip()
-    salary_tag = job_div.find("div", {"data-qa": "vacancy-serp__vacancy-compensation"})
+    salary_tag = job_div.find("span", {"data-qa": "vacancy-serp__vacancy-compensation"})
     if salary_tag is None:
         job_dict["salary"] = None
     else:
