@@ -75,8 +75,11 @@ def get_job_info(job_div):
         job_dict["responsibility"] = None
     else:
         job_dict["responsibility"] = responsibility_tag.get_text().strip()
-    job_dict["requirement"] = job_div.find("div", {"data-qa": "vacancy-serp__vacancy_snippet_requirement"}
-                                           ).get_text().strip()
+    requirement_tag = job_div.find("div", {"data-qa": "vacancy-serp__vacancy_snippet_requirement"})
+    if requirement_tag is None:
+        job_dict["requirement"] = None
+    else:
+        job_dict["requirement"] = requirement_tag.get_text().strip()
     job_id_filter = re.search('/(?P<id>\d+)\?*', url)
     job_dict["id"] = job_id_filter.group('id')
     date_tag = job_div.find("span", {"class": "vacancy-serp-item__publication-date"})
