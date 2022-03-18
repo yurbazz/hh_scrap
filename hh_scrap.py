@@ -82,16 +82,19 @@ def get_job_info(job_div):
         job_dict["requirement"] = requirement_tag.get_text().strip()
     job_id_filter = re.search('/(?P<id>\d+)\?*', url)
     job_dict["id"] = job_id_filter.group('id')
-    date_tag = job_div.find("span", {"class": "vacancy-serp-item__publication-date"})
+    date_tag = job_div.find("span", {"data-qa": "vacancy-serp__vacancy-date"})
     if date_tag is None:
         job_dict["date"] = None
     else:
-        job_dict["date"] = get_job_date(date_tag.get_text())
+        # job_dict["date"] = get_job_date(date_tag.get_text())
+        job_date = date_tag.get_text()
+        job_date = str(datetime.datetime.strptime(job_date, '%d.%m.%Y'))
+        job_dict["date"] = job_date
     return job_dict
 
 
 def get_job_date(job_date):
-    # Get date in dateformat
+    # Get date in dateformat, convert from '01 месяц' to 'yyyy-mm-dd 00:00:00'
     today = datetime.date.today()
     today_month = today.month
     today_year = today.year
@@ -139,16 +142,16 @@ def get_job_desc(url):
 
 
 def main():
-    baseurl = "https://%s.hh.ru/search/vacancy?specialization=1&area=%s&order_by=publication_time&no_magic=true" % \
+    baseurl = baseurl = "https://%s.hh.ru/search/vacancy?area=%s&clusters=true&enable_snippets=true&industry=7&ored_clusters=true&order_by=publication_time&hhtmFrom=vacancy_search_list&items_on_page=20" % \
               (region, region_area)
 
     logging.info("=== STARTING SCRAPER ===")
     # Get Pages 1 to 10
     for n in range(0, 10):
         if n == 0:
-            url = baseurl + "&text=&currency_code=RUR&experience=doesNotMatter&search_period=&items_on_page=20"
+            url = baseurl
         else:
-            url = baseurl + "&enable_snippets=true&clusters=true&page=" + str(n)
+            url = baseurl + "&page=" + str(n)
         # Вытащим страницу
         html = get_http_object(url)
         # Подготовим страницу для парсинга
